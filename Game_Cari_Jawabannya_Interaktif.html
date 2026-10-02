@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cari Jawabannya!</title>
+<style>
+*{box-sizing:border-box} body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#eaf3ff,#f7fbff);color:#203047}
+.container{max-width:1000px;margin:auto;padding:22px}
+.card{background:white;border-radius:24px;padding:25px;box-shadow:0 10px 35px rgba(30,60,100,.12)}
+h1{text-align:center;font-size:42px;color:#1769aa;margin:8px 0} h2{text-align:center}
+.top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:15px}
+.badge{padding:10px 16px;border-radius:20px;background:#edf5ff;font-weight:bold}
+.question{font-size:21px;text-align:center;font-weight:bold;line-height:1.4;margin:15px}
+.instruction{text-align:center;color:#667;margin-bottom:15px}
+.grid{display:grid;grid-template-columns:repeat(14,1fr);gap:4px;max-width:720px;margin:15px auto}
+.cell{aspect-ratio:1;background:#f5f8fc;border:1px solid #d7e0ea;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:clamp(10px,2.2vw,18px);cursor:pointer;user-select:none}
+.cell:hover{background:#dcebff} .cell.selected{background:#6db5ff;color:white} .cell.correct{background:#43b86b;color:white}
+.answers{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:18px}
+.answer{border:0;border-radius:14px;padding:13px 17px;background:#eef4fa;font-weight:bold;cursor:pointer}
+.answer:hover{background:#dcecff}
+.result{display:none;text-align:center;margin:18px auto;padding:20px;border-radius:18px;font-size:25px;font-weight:bold}
+.result.correct{display:block;background:#e5f8eb;color:#218044} .result.wrong{display:block;background:#fff0f0;color:#b33}
+button.next{display:none;margin:15px auto 0;border:0;border-radius:14px;padding:14px 25px;background:#1769aa;color:white;font-weight:bold;font-size:17px;cursor:pointer}
+.start{text-align:center} .start button{border:0;border-radius:16px;padding:16px 40px;background:#1769aa;color:white;font-size:20px;font-weight:bold;cursor:pointer}
+#game{display:none}
+.small{font-size:13px;color:#778}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="card" id="start">
+<h1>🔎 CARI JAWABANNYA!</h1>
+<h2>Game Teknik Membaca Berbagai Bahan Bacaan</h2>
+<p class="instruction">Baca pertanyaan, tentukan jawabannya, lalu cari kata tersebut di dalam kumpulan huruf.</p>
+<p class="instruction">Kata dapat tersembunyi mendatar, menurun, diagonal, atau terbalik.</p>
+<div class="start"><button onclick="startGame()">▶ MULAI GAME</button></div>
+</div>
+
+<div class="card" id="game">
+<div class="top"><span class="badge" id="level"></span><span class="badge">⭐ Skor: <span id="score">0</span></span></div>
+<div class="question" id="question"></div>
+<div class="instruction">Temukan kata jawabannya di kumpulan huruf, atau pilih jawaban di bawah.</div>
+<div class="grid" id="grid"></div>
+<div class="answers" id="answers"></div>
+<div class="result" id="result"></div>
+<button class="next" id="next" onclick="nextQuestion()">SOAL BERIKUTNYA ➜</button>
+</div>
+</div>
+<script>
+const data=[{"q": "Bahan bacaan yang memiliki gagasan utama dan gagasan pendukung disebut apa?", "a": "PARAGRAF", "hint": "Paragraf memiliki gagasan utama dan gagasan pendukung.", "grid": [["P", "J", "Q", "N", "X", "X", "A", "W", "Q", "M", "X", "E", "K", "T"], ["I", "L", "L", "N", "D", "S", "F", "X", "E", "W", "D", "C", "O", "E"], ["G", "F", "B", "R", "W", "Y", "R", "P", "O", "W", "U", "S", "J", "C"], ["M", "D", "K", "P", "U", "O", "O", "Y", "S", "J", "R", "F", "S", "B"], ["S", "Y", "X", "E", "C", "A", "X", "O", "S", "C", "X", "A", "A", "S"], ["B", "V", "R", "R", "X", "D", "Q", "Y", "D", "C", "L", "R", "N", "X"], ["R", "D", "J", "A", "T", "K", "A", "O", "Y", "F", "X", "G", "W", "Y"], ["N", "B", "X", "U", "U", "X", "R", "U", "R", "K", "Y", "A", "X", "X"], ["P", "C", "B", "X", "O", "P", "T", "V", "I", "W", "H", "R", "B", "R"], ["M", "Y", "S", "A", "D", "I", "F", "W", "M", "A", "F", "A", "N", "F"], ["V", "S", "G", "J", "H", "C", "E", "U", "Q", "B", "R", "P", "Z", "D"], ["S", "W", "S", "J", "T", "U", "X", "G", "D", "W", "M", "S", "K", "Y"], ["B", "L", "M", "B", "V", "Q", "T", "V", "X", "Z", "W", "K", "H", "X"], ["K", "X", "J", "R", "F", "C", "Z", "R", "U", "O", "M", "D", "A", "B"]]}, {"q": "Bahan bacaan yang membahas suatu topik dan perlu membedakan fakta serta pendapat disebut apa?", "a": "ARTIKEL", "hint": "Artikel perlu dipahami melalui topik, fakta, pendapat, dan tujuan penulis.", "grid": [["S", "G", "R", "L", "O", "B", "V", "Q", "G", "T", "H", "J", "P", "W"], ["Z", "G", "K", "O", "C", "I", "G", "F", "C", "O", "Y", "R", "L", "G"], ["P", "Z", "K", "H", "U", "A", "M", "N", "G", "C", "N", "O", "J", "G"], ["D", "U", "T", "V", "K", "R", "I", "M", "Z", "M", "H", "N", "C", "M"], ["X", "V", "N", "A", "O", "T", "R", "D", "L", "Z", "A", "L", "W", "L"], ["A", "I", "S", "E", "B", "I", "F", "I", "C", "Y", "E", "M", "V", "X"], ["L", "U", "S", "P", "F", "K", "Q", "J", "F", "W", "Q", "V", "A", "C"], ["C", "B", "S", "L", "R", "E", "O", "D", "V", "W", "T", "Y", "T", "Z"], ["O", "Z", "U", "E", "V", "L", "Z", "G", "X", "R", "O", "E", "C", "E"], ["J", "K", "M", "C", "B", "R", "R", "W", "L", "O", "B", "G", "I", "V"], ["K", "C", "I", "E", "I", "O", "G", "N", "D", "Q", "Z", "K", "H", "D"], ["I", "U", "F", "A", "A", "U", "M", "T", "O", "U", "S", "B", "Z", "K"], ["H", "Z", "I", "P", "V", "G", "R", "S", "R", "K", "K", "A", "E", "J"], ["L", "V", "L", "M", "M", "U", "B", "X", "H", "Q", "C", "G", "E", "V"]]}, {"q": "Bahan bacaan yang berisi cerita imajinatif seperti novel dan cerpen disebut apa?", "a": "BUKU FIKSI", "hint": "Buku fiksi berisi cerita yang bersifat imajinatif.", "grid": [["K", "N", "D", "Z", "M", "V", "C", "N", "Z", "X", "C", "P", "P", "H"], ["L", "A", "W", "X", "D", "J", "A", "K", "P", "Q", "U", "U", "B", "X"], ["F", "G", "G", "M", "H", "M", "K", "R", "E", "Q", "A", "C", "Q", "Q"], ["J", "T", "W", "Y", "B", "P", "M", "L", "N", "B", "A", "X", "P", "L"], ["Y", "T", "R", "L", "I", "J", "V", "U", "D", "H", "I", "L", "G", "F"], ["Y", "L", "E", "M", "C", "M", "U", "U", "L", "F", "Z", "H", "N", "X"], ["L", "F", "J", "L", "R", "M", "O", "K", "E", "Q", "A", "K", "Z", "R"], ["L", "F", "B", "D", "X", "T", "Y", "Z", "G", "Z", "H", "Y", "A", "N"], ["X", "O", "E", "Q", "F", "D", "T", "R", "T", "E", "S", "P", "Y", "L"], ["P", "A", "T", "Y", "F", "G", "V", "F", "N", "W", "G", "X", "G", "W"], ["W", "F", "O", "K", "L", "C", "Y", "Q", "K", "P", "E", "F", "R", "C"], ["X", "V", "D", "B", "X", "K", "V", "S", "M", "J", "D", "T", "K", "Q"], ["T", "F", "H", "Y", "U", "K", "U", "X", "J", "H", "O", "P", "K", "V"], ["E", "G", "V", "I", "S", "K", "I", "F", "U", "K", "U", "B", "W", "J"]]}, {"q": "Bahan bacaan yang berisi informasi berdasarkan fakta, pengetahuan, atau pengalaman disebut apa?", "a": "BUKU NONFIKSI", "hint": "Buku nonfiksi berisi fakta, pengetahuan, atau pengalaman.", "grid": [["Q", "Q", "Z", "U", "F", "U", "T", "P", "E", "U", "N", "Q", "N", "I"], ["U", "Y", "J", "D", "K", "V", "R", "K", "E", "H", "V", "N", "T", "S"], ["D", "Y", "C", "I", "U", "O", "O", "K", "M", "X", "I", "J", "G", "K"], ["A", "T", "M", "N", "B", "F", "Y", "U", "G", "W", "C", "T", "G", "I"], ["K", "K", "T", "J", "T", "S", "L", "C", "C", "Q", "F", "P", "J", "F"], ["H", "O", "F", "E", "Q", "E", "T", "N", "Z", "A", "I", "X", "O", "N"], ["I", "P", "A", "C", "O", "U", "B", "K", "O", "W", "B", "K", "O", "O"], ["P", "L", "G", "O", "P", "O", "U", "N", "K", "Q", "H", "I", "P", "N"], ["B", "C", "C", "B", "X", "C", "C", "I", "I", "C", "D", "W", "F", "U"], ["H", "I", "U", "P", "C", "X", "M", "J", "X", "Y", "R", "Z", "V", "K"], ["T", "R", "K", "Q", "V", "H", "C", "U", "Y", "Z", "B", "H", "T", "U"], ["G", "J", "A", "S", "F", "B", "B", "Q", "Z", "P", "R", "U", "T", "B"], ["G", "B", "Z", "N", "H", "J", "Z", "O", "E", "L", "Q", "B", "U", "E"], ["V", "F", "G", "I", "E", "E", "P", "O", "P", "K", "Q", "P", "C", "S"]]}, {"q": "Bahan bacaan yang menyajikan berita dan dapat dipahami melalui unsur 5W+1H disebut apa?", "a": "SURAT KABAR", "hint": "Surat kabar memperhatikan judul, informasi penting, dan unsur 5W+1H.", "grid": [["G", "V", "U", "P", "J", "X", "A", "R", "A", "I", "L", "D", "Z", "H"], ["H", "P", "O", "Z", "U", "X", "R", "P", "Q", "D", "E", "L", "F", "L"], ["N", "V", "S", "G", "L", "W", "R", "X", "D", "N", "E", "Z", "W", "E"], ["U", "C", "C", "L", "J", "B", "X", "H", "B", "M", "R", "J", "J", "G"], ["R", "Q", "D", "U", "B", "B", "R", "K", "K", "I", "H", "Q", "K", "D"], ["T", "A", "F", "R", "Q", "U", "K", "Y", "B", "S", "Z", "G", "M", "O"], ["O", "H", "B", "B", "L", "J", "L", "Z", "J", "T", "D", "S", "I", "D"], ["G", "D", "O", "A", "B", "Z", "D", "L", "M", "G", "O", "H", "G", "A"], ["N", "E", "D", "T", "K", "J", "R", "I", "D", "V", "Q", "S", "M", "B"], ["Q", "B", "F", "H", "N", "T", "O", "H", "T", "R", "S", "Y", "L", "Q"], ["A", "E", "F", "H", "K", "J", "A", "Z", "I", "L", "H", "S", "D", "Y"], ["X", "L", "C", "Z", "Y", "I", "W", "R", "O", "C", "M", "R", "H", "J"], ["T", "H", "R", "Y", "D", "H", "K", "N", "U", "H", "I", "F", "Z", "I"], ["J", "Q", "W", "Q", "P", "N", "B", "W", "O", "S", "U", "W", "N", "B"]]}, {"q": "Bahan yang menyajikan data berupa angka dan menunjukkan peningkatan atau penurunan disebut apa?", "a": "GRAFIK", "hint": "Grafik dibaca dengan memperhatikan angka, simbol, serta perubahan data.", "grid": [["S", "L", "S", "Z", "D", "A", "J", "Q", "Y", "S", "K", "J", "F", "L"], ["F", "Y", "E", "D", "V", "M", "L", "F", "N", "T", "M", "O", "P", "V"], ["H", "W", "F", "T", "J", "Q", "I", "B", "K", "T", "D", "L", "K", "Y"], ["V", "F", "X", "M", "R", "Q", "S", "Y", "U", "U", "P", "I", "Q", "M"], ["S", "J", "Z", "Q", "W", "D", "S", "N", "L", "J", "F", "I", "S", "E"], ["D", "R", "P", "Z", "M", "L", "S", "Y", "A", "A", "G", "G", "B", "T"], ["F", "K", "Y", "X", "N", "O", "Y", "S", "R", "F", "V", "B", "C", "W"], ["U", "C", "L", "S", "J", "I", "V", "G", "U", "L", "N", "J", "C", "Z"], ["D", "D", "P", "Z", "F", "N", "T", "K", "C", "H", "Y", "B", "J", "G"], ["H", "Y", "D", "L", "F", "W", "Q", "G", "T", "I", "I", "D", "P", "V"], ["Q", "R", "P", "Y", "A", "T", "F", "W", "E", "Y", "G", "S", "W", "B"], ["U", "X", "O", "K", "Y", "H", "V", "Y", "L", "L", "L", "A", "G", "K"], ["U", "M", "K", "U", "Z", "D", "H", "H", "I", "C", "Z", "I", "C", "Y"], ["V", "G", "B", "V", "B", "R", "C", "L", "X", "C", "V", "K", "Y", "V"]]}, {"q": "Bahan yang menyajikan data dalam bentuk baris dan kolom disebut apa?", "a": "TABEL", "hint": "Tabel dibaca dengan memperhatikan baris, kolom, data, dan satuan.", "grid": [["W", "P", "A", "R", "Q", "P", "B", "Z", "I", "Z", "C", "G", "Z", "P"], ["L", "N", "O", "X", "U", "J", "W", "H", "X", "O", "I", "W", "P", "U"], ["E", "F", "I", "L", "P", "L", "C", "J", "L", "K", "F", "E", "N", "C"], ["B", "C", "X", "K", "D", "X", "F", "Z", "X", "L", "O", "W", "R", "J"], ["T", "I", "P", "O", "N", "H", "E", "E", "P", "G", "E", "H", "G", "K"], ["S", "R", "G", "E", "K", "I", "E", "S", "Y", "U", "L", "R", "O", "R"], ["M", "G", "U", "N", "H", "U", "Q", "L", "M", "Y", "V", "M", "V", "W"], ["E", "F", "S", "B", "X", "L", "R", "Q", "C", "W", "D", "Y", "R", "W"], ["W", "P", "P", "Q", "X", "H", "R", "A", "G", "D", "X", "N", "D", "L"], ["H", "Z", "J", "G", "Z", "E", "U", "A", "C", "R", "X", "J", "T", "I"], ["D", "K", "O", "A", "N", "Q", "R", "G", "D", "J", "I", "A", "J", "A"], ["P", "G", "J", "V", "F", "B", "T", "K", "A", "Q", "B", "V", "V", "Z"], ["Q", "K", "W", "K", "D", "Y", "Z", "B", "I", "E", "Y", "B", "D", "G"], ["S", "R", "L", "T", "Q", "N", "Y", "B", "L", "K", "G", "Z", "V", "O"]]}, {"q": "Bahan yang menunjukkan hubungan antarbagian menggunakan kotak, garis, atau tanda panah disebut apa?", "a": "BAGAN", "hint": "Bagan menunjukkan hubungan antara satu bagian dengan bagian lainnya.", "grid": [["U", "L", "E", "T", "X", "B", "Q", "T", "V", "O", "V", "O", "S", "K"], ["Z", "L", "L", "E", "A", "G", "G", "M", "M", "H", "B", "M", "N", "T"], ["D", "B", "B", "G", "S", "P", "G", "U", "Z", "X", "I", "G", "U", "D"], ["I", "B", "A", "X", "O", "I", "I", "Y", "D", "X", "P", "N", "R", "E"], ["G", "N", "M", "E", "K", "B", "B", "X", "L", "O", "E", "J", "K", "K"], ["N", "I", "Z", "Q", "M", "S", "N", "C", "G", "N", "O", "P", "W", "N"], ["Q", "Z", "M", "W", "K", "T", "E", "H", "J", "J", "D", "B", "C", "D"], ["R", "A", "B", "L", "X", "D", "P", "L", "W", "T", "A", "H", "M", "O"], ["I", "F", "N", "Q", "B", "E", "M", "K", "N", "N", "Y", "I", "D", "P"], ["R", "Y", "B", "N", "N", "Q", "F", "G", "W", "M", "V", "E", "W", "K"], ["X", "W", "O", "U", "O", "M", "T", "P", "B", "C", "A", "F", "X", "F"], ["A", "F", "I", "J", "Y", "K", "Y", "N", "W", "Q", "R", "X", "J", "M"], ["D", "Y", "I", "T", "X", "P", "K", "L", "S", "M", "C", "O", "V", "I"], ["I", "E", "P", "H", "K", "N", "E", "F", "A", "L", "Y", "W", "C", "Q"]]}, {"q": "Bahan yang menggunakan legenda, skala, simbol, dan arah mata angin untuk menunjukkan wilayah disebut apa?", "a": "PETA", "hint": "Peta menggunakan judul, legenda, skala, arah mata angin, dan simbol.", "grid": [["E", "W", "C", "V", "M", "X", "I", "M", "G", "C", "J", "G", "F", "G"], ["W", "K", "G", "D", "G", "C", "R", "N", "D", "R", "K", "V", "M", "G"], ["U", "W", "T", "U", "B", "X", "X", "S", "O", "B", "L", "Z", "X", "K"], ["U", "H", "G", "Q", "Y", "P", "G", "A", "C", "P", "Y", "S", "D", "M"], ["F", "K", "H", "W", "O", "X", "U", "A", "L", "Z", "Z", "Y", "F", "H"], ["T", "L", "R", "F", "A", "H", "Z", "S", "Z", "P", "P", "G", "D", "Q"], ["U", "E", "B", "X", "T", "F", "S", "E", "K", "P", "A", "C", "Z", "Y"], ["U", "K", "E", "M", "X", "B", "O", "W", "M", "E", "Z", "I", "X", "R"], ["P", "C", "J", "Q", "M", "B", "M", "O", "F", "T", "F", "G", "R", "U"], ["S", "E", "M", "H", "A", "Z", "Z", "K", "C", "A", "X", "M", "D", "O"], ["C", "R", "G", "E", "U", "Q", "B", "D", "R", "U", "Z", "Q", "D", "C"], ["L", "Y", "O", "N", "N", "M", "U", "K", "D", "Z", "T", "W", "F", "Z"], ["R", "T", "N", "A", "T", "P", "E", "V", "N", "T", "D", "R", "P", "U"], ["C", "C", "V", "P", "W", "G", "T", "C", "N", "M", "R", "U", "T", "U"]]}];
+let idx=0,score=0,answered=false;
+function startGame(){document.getElementById('start').style.display='none';document.getElementById('game').style.display='block';showQuestion();}
+function showQuestion(){
+ answered=false; const d=data[idx];
+ document.getElementById('level').textContent=`SOAL ${idx+1} / ${data.length}`;
+ document.getElementById('score').textContent=score;
+ document.getElementById('question').textContent=d.q;
+ document.getElementById('result').className='result';document.getElementById('result').style.display='none';
+ document.getElementById('next').style.display='none';
+ const grid=document.getElementById('grid');grid.innerHTML='';
+ d.grid.forEach((row,r)=>row.forEach((ch,c)=>{
+  const b=document.createElement('div');b.className='cell';b.textContent=ch;
+  b.onclick=()=>b.classList.toggle('selected');grid.appendChild(b);
+ }));
+ const ans=document.getElementById('answers');ans.innerHTML='';
+ let opts=[d.a];
+ while(opts.length<4){let x=data[Math.floor(Math.random()*data.length)].a;if(!opts.includes(x))opts.push(x);}
+ opts.sort(()=>Math.random()-.5);
+ opts.forEach(x=>{let b=document.createElement('button');b.className='answer';b.textContent=x;b.onclick=()=>check(x,b);ans.appendChild(b);});
+}
+function check(x,btn){
+ if(answered)return; answered=true;
+ const res=document.getElementById('result');
+ if(x===data[idx].a){score+=10;res.className='result correct';res.innerHTML='🎉 BENAR!<div class="small">'+data[idx].hint+'</div>';btn.style.background='#43b86b';btn.style.color='white';}
+ else{res.className='result wrong';res.innerHTML='❌ BELUM TEPAT!<div class="small">Jawaban yang benar: '+data[idx].a+'</div>';btn.style.background='#d95c5c';btn.style.color='white';}
+ res.style.display='block';document.getElementById('score').textContent=score;
+ document.getElementById('next').style.display='block';
+}
+function nextQuestion(){
+ idx++;
+ if(idx>=data.length){document.getElementById('game').innerHTML=`<div style="text-align:center;padding:50px"><h1>🏆 SELESAI!</h1><h2>Skor akhir: ${score}</h2><p>Hebat! Kamu sudah mengenal berbagai bahan bacaan.</p><button class="start button" onclick="location.reload()">🔄 MAIN LAGI</button></div>`;}
+ else showQuestion();
+}
+</script>
+</body>
+</html>
